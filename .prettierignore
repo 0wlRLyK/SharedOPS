@@ -1,0 +1,19 @@
+# Dependency and generated files
+**/node_modules/
+**/target/
+**/dist/
+**/build/
+**/coverage/
+**/.next/
+**/generated/
+
+# Package manager generated file
+pnpm-lock.yaml
+
+# Managed by other tools
+**/*.java
+**/*.sql
+**/*.xml
+
+# HTML is outside the current formatter baseline
+**/*.html

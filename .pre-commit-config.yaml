@@ -1,0 +1,76 @@
+minimum_pre_commit_version: "4.0.0"
+default_stages: [pre-commit]
+
+repos:
+  # Repository hygiene and syntax validation
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      # Auto-fix
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+
+      - id: end-of-file-fixer
+
+      - id: fix-byte-order-marker
+
+      # Validation
+      - id: check-yaml
+        exclude: '^pnpm-lock\.yaml$'
+
+      - id: check-json
+
+      - id: check-xml
+
+      - id: check-merge-conflict
+
+      - id: check-case-conflict
+
+      - id: check-symlinks
+
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+
+      - id: detect-private-key
+
+  # SharedOPS-specific tooling
+  - repo: local
+    hooks:
+      # Java formatting: modifies files when necessary
+      - id: spotless
+        name: Spotless Java auto-format
+        entry: ./backend/mvnw -f backend/pom.xml spotless:apply
+        language: system
+        files: '^backend/src/(main|test)/java/.*\.java$'
+        types: [file]
+        pass_filenames: false
+        require_serial: true
+
+      # Java structural checks: blocking
+      - id: checkstyle
+        name: Checkstyle Java validation
+        entry: ./backend/mvnw -f backend/pom.xml checkstyle:check
+        language: system
+        files: '^backend/(src/.*\.java|pom\.xml|config/checkstyle\.xml)$'
+        types: [file]
+        pass_filenames: false
+        require_serial: true
+
+      # Prettier: auto-format staged supported files
+      - id: prettier
+        name: Prettier auto-format
+        entry: corepack pnpm exec prettier --write
+        language: system
+        files: '\.(md|mdx|json|jsonc|ya?ml|js|jsx|ts|tsx|css|scss)$'
+        exclude: '^pnpm-lock\.yaml$'
+        types: [file]
+        require_serial: true
+
+      # Checks commit
+      - id: commitlint
+        name: Conventional Commit message
+        entry: corepack pnpm exec commitlint --edit
+        language: system
+        stages: [commit-msg]
+        pass_filenames: true
+        always_run: true

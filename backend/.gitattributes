@@ -1,0 +1,25 @@
+/mvnw text eol=lf
+*.cmd text eol=crlf
+
+# Normalize text files to LF
+* text=auto eol=lf
+
+# Binary images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+
+# Binary documents and archives
+*.pdf binary
+*.zip binary
+*.gz binary
+
+# Fonts
+*.woff binary
+*.woff2 binary
+
+# Java archives
+*.jar binary

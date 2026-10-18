@@ -1,0 +1,14 @@
+{
+  "name": "sharedops",
+  "private": true,
+  "packageManager": "pnpm@12.14.0",
+  "scripts": {
+    "format:check": "prettier --check .",
+    "format:write": "prettier --write ."
+  },
+  "devDependencies": {
+    "@commitlint/cli": "21.2.3",
+    "@commitlint/config-conventional": "21.2.3",
+    "prettier": "3.9.10"
+  }
+}

@@ -1,0 +1,66 @@
+
+# ============================================================
+# SharedOPS — Repository-wide ignore rules
+# ============================================================
+
+# Node.js / pnpm dependencies and caches
+node_modules/
+.pnpm-store/
+.npm/
+.pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+
+# Environment files and local secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Local secrets and credentials
+*.local.env
+*.secrets.json
+*.secrets.yaml
+*.secrets.yml
+
+# OS-generated files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+Thumbs.db:encryptable
+Desktop.ini
+
+# Temporary editor files
+*.swp
+*.swo
+*~
+*.tmp
+*.temp
+*.orig
+*.rej
+
+# Local IDE state
+.idea/
+*.iml
+*.iws
+
+# General build and tool caches
+.cache/
+.tmp/
+.temp/
+
+# Logs
+*.log
+logs/
+
+# Local coverage output
+coverage/
+
+# Local test and runtime artifacts
+test-results/
+playwright-report/
+
+# Local scratch files
+scratch/
