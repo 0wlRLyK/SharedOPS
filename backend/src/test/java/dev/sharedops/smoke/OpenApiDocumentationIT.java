@@ -1,4 +1,4 @@
-package dev.sharedops;
+package dev.sharedops.smoke;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

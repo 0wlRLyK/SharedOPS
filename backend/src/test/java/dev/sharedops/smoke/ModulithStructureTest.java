@@ -1,5 +1,6 @@
-package dev.sharedops;
+package dev.sharedops.smoke;
 
+import dev.sharedops.SharedopsBackendApplication;
 import org.junit.jupiter.api.Test;
 import org.springframework.modulith.core.ApplicationModules;
 

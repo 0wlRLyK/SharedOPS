@@ -1,4 +1,4 @@
-package dev.sharedops;
+package dev.sharedops.smoke;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
