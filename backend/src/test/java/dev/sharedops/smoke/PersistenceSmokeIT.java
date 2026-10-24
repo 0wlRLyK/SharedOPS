@@ -1,6 +1,6 @@
-package dev.sharedops;
+package dev.sharedops.smoke;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.sharedops.smoke.persistence.PersistenceSmokeRecord;
 import dev.sharedops.smoke.persistence.PersistenceSmokeRepository;

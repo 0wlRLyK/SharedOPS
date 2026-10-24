@@ -1,5 +1,6 @@
-package dev.sharedops;
+package dev.sharedops.smoke;
 
+import dev.sharedops.SharedopsBackendApplication;
 import org.springframework.boot.SpringApplication;
 
 public class TestSharedopsBackendApplication {
