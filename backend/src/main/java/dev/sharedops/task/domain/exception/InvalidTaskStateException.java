@@ -1,6 +1,6 @@
 package dev.sharedops.task.domain.exception;
 
-import dev.sharedops.common.api.exception.DomainException;
+import dev.sharedops.common.exception.DomainException;
 
 public class InvalidTaskStateException extends DomainException {
   public InvalidTaskStateException(String message) {

@@ -2,7 +2,7 @@ package dev.sharedops.task.domain.exception;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import dev.sharedops.common.api.exception.DomainException;
+import dev.sharedops.common.exception.DomainException;
 import org.junit.jupiter.api.Test;
 
 public class InvalidTaskStateExceptionTest {
