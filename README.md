@@ -55,10 +55,10 @@ For the current backend foundation, the test development launcher starts Postgre
 
 ```bash
 cd backend
-./mvnw spring-boot:test-run -Dspring-boot.run.arguments=--spring.flyway.locations=classpath:db/persistence-smoke
+./mvnw spring-boot:test-run
 ```
 
-The migration location above contains test fixtures. Use this launcher to inspect the backend foundation, not to store household data. Product endpoints and production migrations are still pending. Spring Security currently uses its default development authentication; the planned account/session workflow is not implemented.
+This launcher uses an ephemeral Testcontainers database and the production Flyway migrations. Use it to inspect the backend foundation, not to store household data. Product endpoints are still pending. Spring Security currently uses its default development authentication; the planned account/session workflow is not implemented.
 
 To use a separately managed PostgreSQL database, copy `backend/config/application-local.example.properties` to `backend/config/application-local.properties` and fill in the datasource, server and logging values. The local profile loads this file from `backend/config/`; it is ignored by Git. From the repository root:
 
@@ -66,7 +66,7 @@ To use a separately managed PostgreSQL database, copy `backend/config/applicatio
 make backend-run
 ```
 
-Production schema migrations and complete application configuration must be added as their features are implemented. A frontend launch command is available in the Makefile, but requires the planned `web/` application.
+Additional schema migrations and application configuration must be added as features are implemented. A frontend launch command is available in the Makefile, but requires the planned `web/` application.
 
 ## Checks
 
