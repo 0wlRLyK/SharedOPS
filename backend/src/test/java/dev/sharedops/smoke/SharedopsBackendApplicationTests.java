@@ -1,11 +1,12 @@
 package dev.sharedops.smoke;
 
+import dev.sharedops.TestcontainersConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 
 @Import(TestcontainersConfiguration.class)
-@SpringBootTest(properties = "spring.flyway.locations=classpath:db/persistence-smoke")
+@SpringBootTest
 class SharedopsBackendApplicationTests {
 
   @Test

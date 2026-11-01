@@ -2,6 +2,7 @@ package dev.sharedops.smoke;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.sharedops.TestcontainersConfiguration;
 import dev.sharedops.smoke.openapi.OpenApiSmokeController;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -22,7 +23,6 @@ import tools.jackson.databind.json.JsonMapper;
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     properties = {
-      "spring.flyway.locations=classpath:db/persistence-smoke",
       "spring.security.user.name=openapi-smoke",
       "spring.security.user.password=openapi-smoke-password"
     })
