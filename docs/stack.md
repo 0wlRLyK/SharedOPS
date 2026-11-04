@@ -39,7 +39,7 @@ Versions below come from [backend/pom.xml](../backend/pom.xml). â€œBoot-managedâ
 | JSON              | Jackson                        | Boot-managed |
 | API documentation | springdoc OpenAPI WebMVC UI    | 3.1.1        |
 
-These dependencies are installed. Product authentication/session rules, household authorization, domain workflows and production migrations still need implementation. OpenAPI is smoke-tested against a test-only endpoint.
+These dependencies are installed. Product authentication/session rules, household authorization and domain workflows still need implementation. The manually maintained [OpenAPI contract](api/openapi.yml) is the source of truth; its planned operations are not yet implemented. The contract integration test reads that file and checks a validation response from a test-only endpoint against selected contract requirements. It does not validate every OpenAPI rule or establish production endpoint coverage. Springdoc's generated document is separate and is not the authoritative contract.
 
 ## Test dependencies
 

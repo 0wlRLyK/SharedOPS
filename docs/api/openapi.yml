@@ -1,0 +1,194 @@
+openapi: 3.1.0
+servers:
+  - url: http://localhost:8080
+    description: Local development
+info:
+  title: SharedOPS API
+  version: 1.0.0
+  description: |
+    This manually maintained file is the source of truth for the API contract
+    (see ADR-0008). Structured errors use RFC 9457 Problem Details with
+    application/problem+json; code and fieldErrors are SharedOPS extensions.
+    The task operation below is planned and is not yet implemented. Error
+    responses and input rules marked planned are commitments for subsequent
+    feature tickets, not a claim that those features are available today.
+
+    Input normalization is field-specific: email is stripped of surrounding
+    whitespace and lowercased using locale-independent rules before validation.
+    Passwords are passed unchanged, including whitespace, and must never be
+    silently trimmed, case-folded, or otherwise rewritten. Other fields are
+    not normalized unless their own contract explicitly says so. Authentication
+    endpoints and their production contract tests are planned for HO-9.
+
+    Error codes and status meanings:
+    * 400 VALIDATION_ERROR: request validation failed; fieldErrors identifies fields.
+    * 400 INVALID_VALUE: a JSON value has an invalid type or enum value;
+      fieldErrors is included when the deserializer has a field path.
+    * 400 MALFORMED_JSON: body is missing or cannot be parsed as JSON.
+    * 401 UNAUTHORIZED: authentication is required.
+    * 403 FORBIDDEN: an authenticated caller is denied access.
+    * 404 NOT_FOUND (planned): a resource is absent or inaccessible in the
+      caller's household; responses must not reveal which case applies.
+    * 409 VERSION_CONFLICT: a command's body version is stale. Transactional
+      checking and unchanged persisted state are verified in the command ticket.
+    * 415 UNSUPPORTED_MEDIA_TYPE: the request content type is unsupported.
+    * 429 RATE_LIMITED (planned): a request exceeded a configured rate limit.
+
+    Field paths use dot-separated property names and zero-based array indexes,
+    for example items[0].status. Paths stop before user-supplied map keys.
+    Rejected values and exception details are not returned. Responses and status
+    codes beyond implemented handlers must be
+    implemented and tested with their corresponding feature.
+
+paths:
+  /api/v1/tasks/{taskId}:
+    get:
+      description: Planned operation; not yet implemented.
+      summary: Get task by ID
+      operationId: getTask
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Task retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: SESSION
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ApiProblem"
+    Forbidden:
+      description: Access denied
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ApiProblem"
+    NotFound:
+      description: Resource not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ApiProblem"
+    BadRequest:
+      description: Invalid request
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ApiProblem"
+    Conflict:
+      description: Resource version conflict
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ApiProblem"
+    UnsupportedMediaType:
+      description: Unsupported request content type
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ApiProblem"
+    RateLimited:
+      description: Planned response when the configured request limit is exceeded.
+      headers:
+        Retry-After:
+          description: Delay in seconds before retrying, when known.
+          schema:
+            type: integer
+            minimum: 0
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ApiProblem"
+
+  schemas:
+    FieldErrorDetail:
+      type: object
+      required:
+        - field
+        - code
+        - message
+      properties:
+        field:
+          type: string
+        code:
+          type: string
+          description: Stable field error code.
+          enum: [REQUIRED, INVALID_FORMAT, INVALID_VALUE]
+        message:
+          type: string
+
+    ApiProblem:
+      type: object
+      required:
+        - title
+        - status
+        - detail
+        - code
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        code:
+          type: string
+          description: Stable application error code; planned codes are described above.
+          enum:
+            - VALIDATION_ERROR
+            - INVALID_VALUE
+            - MALFORMED_JSON
+            - UNAUTHORIZED
+            - FORBIDDEN
+            - NOT_FOUND
+            - VERSION_CONFLICT
+            - UNSUPPORTED_MEDIA_TYPE
+            - RATE_LIMITED
+
+        fieldErrors:
+          type: array
+          items:
+            $ref: "#/components/schemas/FieldErrorDetail"
+
+    TaskResponse:
+      type: object
+      required:
+        - id
+        - responsibilityId
+      properties:
+        id:
+          type: string
+          format: uuid
+        responsibilityId:
+          type: string
+          format: uuid
+
+security:
+  - sessionCookie: []
