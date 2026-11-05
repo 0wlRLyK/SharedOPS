@@ -24,8 +24,8 @@ help:
 	@echo "  make check                Run formatting and Java lint checks"
 	@echo "  make hooks-check          Run all file hooks with auto-fix"
 	@echo "  make hooks-check-staged   Run hooks on staged changes"
-	@echo "  make test                 Run backend unit tests"
-	@echo "  make verify               Run backend verification and formatting checks"
+	@echo "  make test                 Run Docker-independent backend tests"
+	@echo "  make verify               Run all backend tests (requires Docker) and formatting checks"
 
 setup:
 	corepack pnpm install --frozen-lockfile

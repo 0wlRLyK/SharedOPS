@@ -12,8 +12,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@SpringJUnitConfig(classes = ApplicationWiringIT.TestConfig.class)
-public class ApplicationWiringIT {
+@SpringJUnitConfig(classes = ApplicationWiringTest.TestConfig.class)
+public class ApplicationWiringTest {
   @Autowired TestController controller;
 
   interface TestPort {
@@ -57,9 +57,9 @@ public class ApplicationWiringIT {
 
   @Configuration(proxyBeanMethods = false)
   @Import({
-    ApplicationWiringIT.TestAdapter.class,
-    ApplicationWiringIT.TestApplicationService.class,
-    ApplicationWiringIT.TestController.class
+    ApplicationWiringTest.TestAdapter.class,
+    ApplicationWiringTest.TestApplicationService.class,
+    ApplicationWiringTest.TestController.class
   })
   static class TestConfig {}
 

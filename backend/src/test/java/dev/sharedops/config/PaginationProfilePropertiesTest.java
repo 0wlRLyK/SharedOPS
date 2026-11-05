@@ -10,8 +10,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("test")
-@SpringBootTest(classes = PaginationProfilePropertiesIT.TestConfig.class)
-class PaginationProfilePropertiesIT {
+@SpringBootTest(classes = PaginationProfilePropertiesTest.TestConfig.class)
+class PaginationProfilePropertiesTest {
 
   @Autowired PaginationProperties properties;
 

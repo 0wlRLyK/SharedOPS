@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 @SpringJUnitConfig(classes = {ClockConfiguration.class, TestClockConfiguration.class})
-class ClockConfigurationIT {
+class ClockConfigurationTest {
 
   @Autowired Clock clock;
 

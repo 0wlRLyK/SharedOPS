@@ -11,6 +11,7 @@ Start with the [project README](../README.md) for setup and development commands
 | [Product decision register](decision-register.md)            | Accepted behavior, deferred proposals, alternatives and revisit conditions                        |
 | [Risk register](risk-register.md)                            | Delivery and engineering risks, triggers and response plans                                       |
 | [Test strategy](test-strategy.md)                            | Test levels, critical scenarios, quality gates and evidence requirements                          |
+| [HO-8 verification](evidence/ho-8-verification.md)           | Local fast and PostgreSQL integration suite results                                               |
 | [Toolchain verification](evidence/toolchain-verification.md) | Recorded backend smoke checks, formatting, hooks and commit-message validation                    |
 
 ## Architecture decisions

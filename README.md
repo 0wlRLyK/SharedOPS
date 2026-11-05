@@ -22,7 +22,7 @@ The project is in active development. The repository contains the Spring Boot ba
 | M3                      | Further product extensions defined in the requirements inventory                                                                                                     |
 | M4                      | Optional Android client                                                                                                                                              |
 
-The [requirements inventory](docs/requirements.md) assigns individual requirements to stages. The [toolchain verification record](docs/evidence/toolchain-verification.md) describes what has actually been checked.
+The [requirements inventory](docs/requirements.md) assigns individual requirements to stages. The [HO-8 verification record](docs/evidence/ho-8-verification.md) and earlier [toolchain record](docs/evidence/toolchain-verification.md) describe local checks.
 
 ## Requirements
 
@@ -70,16 +70,16 @@ Additional schema migrations and application configuration must be added as feat
 
 ## Checks
 
-| Command             | Purpose                                                                                        |
-| ------------------- | ---------------------------------------------------------------------------------------------- |
-| `make format`       | Apply Java and supported text formatting                                                       |
-| `make format-check` | Check formatting                                                                               |
-| `make check`        | Check formatting and Java static rules                                                         |
-| `make test`         | Run Surefire tests, including the context and Modulith checks                                  |
-| `make verify`       | Run backend verification, Failsafe integration tests, static checks and text formatting checks |
-| `make hooks-check`  | Run file hooks; may apply formatting                                                           |
+| Command             | Purpose                                                                                     |
+| ------------------- | ------------------------------------------------------------------------------------------- |
+| `make format`       | Apply Java and supported text formatting                                                    |
+| `make format-check` | Check formatting                                                                            |
+| `make check`        | Check formatting and Java static rules                                                      |
+| `make test`         | Run 70 fast Surefire tests without Docker                                                   |
+| `make verify`       | Run both test suites, including PostgreSQL Testcontainers, and formatting and static checks |
+| `make hooks-check`  | Run file hooks; may apply formatting                                                        |
 
-Some `make test` checks start PostgreSQL through Testcontainers, so Docker is required for that command as well as `make verify`. Commit-msg validation runs separately when committing.
+Surefire runs `*Test` fast tests; Failsafe runs `*IT` integration tests during verification. Docker is required for `make verify`. The equivalent Maven commands from `backend/` are `./mvnw test` and `./mvnw verify`; the latter does not run the repository's Prettier check. Commit-msg validation runs separately when committing.
 
 ## Repository layout
 
