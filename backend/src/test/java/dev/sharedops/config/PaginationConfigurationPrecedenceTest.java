@@ -11,9 +11,9 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("test")
 @SpringBootTest(
-    classes = PaginationConfigurationPrecedenceIT.TestConfig.class,
+    classes = PaginationConfigurationPrecedenceTest.TestConfig.class,
     properties = {"sharedops.api.pagination.max-page-size=25"})
-class PaginationConfigurationPrecedenceIT {
+class PaginationConfigurationPrecedenceTest {
 
   @Autowired PaginationProperties properties;
 

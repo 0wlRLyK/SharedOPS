@@ -40,6 +40,17 @@ This strategy defines the test scope, environments, responsibilities and evidenc
 
 Use fast domain tests for business rules, database integration tests for transaction and authorization boundaries, and a small set of critical browser journeys. Choose the test level by the behavior being verified.
 
+### Principles of tests division
+
+- **Choose by behavior and dependencies.** Use the smallest scope that proves the requirement. Classify a test by what it actually starts or connects to, not by its name or annotation alone.
+- **Keep fast tests independent.** Name backend fast tests `*Test` for Surefire. Domain, architecture, serialization and isolated MVC/configuration tests belong here when they need no Docker, database, running application or external service. Prefer plain unit tests or a focused Spring slice; a limited test context can be fast too.
+- **Put infrastructure and full-application tests in Failsafe.** Name backend tests `*IT` when they start the full SharedOPS application or require PostgreSQL, Docker or another external service. Use PostgreSQL Testcontainers and production Flyway migrations for persistence, transaction and security behavior that depends on the database; do not replace those checks with mocks or an in-memory database.
+- **Keep tests deterministic and isolated.** Control time and data, avoid test-order and local-environment dependencies, clean up owned data, and use bounded waits and independent transactions for races. Retain security, negative-path and committed-state assertions at the level needed to prove them.
+- **Verify discovery and execution.** Run `make test` for the fast suite and `make verify` for both backend suites; check the reports for the new test and any failures or skips. From `backend/`, use `./mvnw test` and `./mvnw verify`. Do not silently disable or exclude a required test to make a build pass.
+- **Keep future E2E and operational tests explicit.** Browser, performance and recovery tests are planned separately. When implemented, document their prerequisites, command and required CI/release gate; do not assume Maven discovers non-Java E2E tests or claim they already run in `make verify`.
+
+These project naming conventions use [Maven Failsafe's integration-test lifecycle](https://maven.apache.org/surefire/maven-failsafe-plugin/) and [Spring Boot's focused test slices](https://docs.spring.io/spring-boot/reference/testing/spring-boot-applications.html).
+
 ## Test environment and deterministic fixtures
 
 - **Backend:** JDK 25 LTS and the Maven Wrapper; dependency versions are recorded in the [technology stack](stack.md).
@@ -89,13 +100,22 @@ The course submission test catalogue groups scenarios under `/Tnn/` IDs. Each gr
 
 Run from the repository root:
 
-| Command       | Current coverage                                                                                                   |
-| ------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `make test`   | Surefire: JSON serialization, application context startup and Modulith structure                                   |
-| `make verify` | Surefire plus Failsafe: Flyway migrations, persistence and OpenAPI smoke checks; Spotless, Checkstyle and Prettier |
-| `make check`  | Formatting and Java static checks                                                                                  |
+| Command       | Current coverage                                                                                                                                                                |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `make test`   | 70 Surefire tests: domain, architecture, configuration, isolated MVC/security, OpenAPI contract and serialization; no Docker required                                           |
+| `make verify` | Surefire plus Failsafe: full application startup with `local` and `test` profiles, PostgreSQL migrations, persistence and transaction checks; Spotless, Checkstyle and Prettier |
+| `make check`  | Formatting and Java static checks                                                                                                                                               |
 
-Both test commands need Docker because the context and integration checks use PostgreSQL Testcontainers. The [toolchain verification record](evidence/toolchain-verification.md) records current smoke results. Business authorization, concurrency, browser, performance and recovery tests are still planned. Browser and load-test commands will be documented when implemented. CI may run Maven directly while Testcontainers launches PostgreSQL.
+Surefire selects `*Test` fast tests; Failsafe selects `*IT` integration tests. `make verify` requires Docker for PostgreSQL Testcontainers and runs both suites; Maven can also be run directly from `backend` using `./mvnw test` or `./mvnw verify` (without the Makefile's Prettier check). See the [HO-8 verification record](evidence/ho-8-verification.md) and the earlier [toolchain record](evidence/toolchain-verification.md). Business authorization, broader concurrency, browser, performance and recovery tests are still planned. Browser and load-test commands will be documented when implemented. CI may run Maven directly while Testcontainers launches PostgreSQL.
+
+For focused diagnosis, run these commands from `backend/`. The integration commands also run the complete Surefire suite before the selected Failsafe tests; Docker is required. These selections are snapshots of the current test classes, so update them when adding coverage.
+
+| Scope                  | Purpose                                                                                                   | Command                                                                                                                                                                                         |
+| ---------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Domain                 | Check business primitives and rules without Spring or a database.                                         | `./mvnw test -Dtest='HouseholdIdTest,UserIdTest,HouseholdCapacityExceededExceptionTest,ResponsibilityIdTest,RecurrenceIntervalTest,TaskChecklistTest,TaskIdTest,InvalidTaskStateExceptionTest'` |
+| MVC contract           | Check HTTP error and OpenAPI contracts in isolated web contexts.                                          | `./mvnw test -Dtest='ApiExceptionHandlerTest,OpenApiDocumentationTest'`                                                                                                                         |
+| PostgreSQL persistence | Check production migrations, constraints, persistence, rollback and concurrent writes against PostgreSQL. | `./mvnw verify -Dit.test='DatabaseConstraintsIT,FlywayChecksumIT,ProductionSchemaIT,FlywayMigrationIT,TaskChecklistPersistenceIT,TaskChecklistTransactionRollbackIT,ChecklistPositionRaceIT'`   |
+| Full application       | Check real application context startup under both profiles with PostgreSQL and production migrations.     | `./mvnw verify -Dit.test='SharedopsBackendApplicationIT,SharedopsBackendTestProfileIT'`                                                                                                         |
 
 **Mandatory checks:** a test assertion failure, missing required execution, test infrastructure blockage, flaky behavior, controlled architecture/static-analysis violation, broken schema/client compatibility or critical security/concurrency violation blocks merge. Diagnose and rerun failures; automatic retries must not erase the original failure. An informational warning follows its published classification, not an improvised veto.
 

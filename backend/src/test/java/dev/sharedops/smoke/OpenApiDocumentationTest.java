@@ -28,14 +28,14 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
-@WebMvcTest(controllers = OpenApiDocumentationIT.ContractProbeController.class)
+@WebMvcTest(controllers = OpenApiDocumentationTest.ContractProbeController.class)
 @Import({
   ApiExceptionHandler.class,
   ApiProblemFactory.class,
-  OpenApiDocumentationIT.ContractProbeController.class
+  OpenApiDocumentationTest.ContractProbeController.class
 })
 @AutoConfigureMockMvc(addFilters = false)
-class OpenApiDocumentationIT {
+class OpenApiDocumentationTest {
   @Autowired MockMvc mockMvc;
   @Autowired JsonMapper jsonMapper;
 
