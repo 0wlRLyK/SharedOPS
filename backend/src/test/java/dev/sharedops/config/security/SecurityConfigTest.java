@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import dev.sharedops.SharedopsBackendApplication;
 import dev.sharedops.common.api.ApiProblemFactory;
+import dev.sharedops.config.ClockConfiguration;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -15,11 +17,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 @ContextConfiguration(classes = SharedopsBackendApplication.class)
 @Import({
   SecurityConfig.class,
+  ClockConfiguration.class,
   ApiAuthenticationEntryPoint.class,
   ApiProblemFactory.class,
   ApiAccessDeniedHandler.class,
@@ -36,6 +44,9 @@ import org.springframework.web.bind.annotation.RestController;
 })
 public class SecurityConfigTest {
   @Autowired private MockMvc mockMvc;
+  @MockitoBean private UserDetailsService userDetailsService;
+  @MockitoBean private PasswordEncoder passwordEncoder;
+  @MockitoBean private JdbcTemplate jdbcTemplate;
 
   @Test
   void check401error() throws Exception {
@@ -51,7 +62,7 @@ public class SecurityConfigTest {
   @WithMockUser(roles = "USER")
   void check403error() throws Exception {
     mockMvc
-        .perform(get("/test/admin"))
+        .perform(get("/test/admin").session(authenticatedSession()))
         .andExpect(status().isForbidden())
         .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
         .andExpect(jsonPath("$.code").value("FORBIDDEN"))
@@ -62,9 +73,15 @@ public class SecurityConfigTest {
   @WithMockUser(roles = "ADMIN")
   void shouldAllowAdminAccess() throws Exception {
     mockMvc
-        .perform(get("/test/admin"))
+        .perform(get("/test/admin").session(authenticatedSession()))
         .andExpect(status().isOk())
         .andExpect(content().string("admin"));
+  }
+
+  private MockHttpSession authenticatedSession() {
+    MockHttpSession session = new MockHttpSession();
+    SessionPolicy.initialize(session, false, Instant.now());
+    return session;
   }
 
   @RestController

@@ -3,6 +3,8 @@ package dev.sharedops.task.infrastructure.persistence;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -13,6 +15,7 @@ import java.util.UUID;
 @Table(name = "checklist_entries")
 public class ChecklistEntryEntity {
   @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
   @Column(name = "id")
   private UUID id;
 
@@ -29,9 +32,7 @@ public class ChecklistEntryEntity {
   @Column(name = "position", nullable = false)
   private int position;
 
-  public ChecklistEntryEntity(
-      UUID id, TaskEntity task, String text, boolean isCompleted, int position) {
-    this.id = id;
+  public ChecklistEntryEntity(TaskEntity task, String text, boolean isCompleted, int position) {
     this.task = task;
     this.text = text;
     this.isCompleted = isCompleted;
@@ -39,10 +40,6 @@ public class ChecklistEntryEntity {
   }
 
   public ChecklistEntryEntity() {}
-
-  public void setId(UUID id) {
-    this.id = id;
-  }
 
   public UUID getId() {
     return id;

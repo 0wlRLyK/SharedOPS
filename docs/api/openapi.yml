@@ -16,9 +16,20 @@ info:
     Input normalization is field-specific: email is stripped of surrounding
     whitespace and lowercased using locale-independent rules before validation.
     Passwords are passed unchanged, including whitespace, and must never be
-    silently trimmed, case-folded, or otherwise rewritten. Other fields are
-    not normalized unless their own contract explicitly says so. Authentication
-    endpoints and their production contract tests are planned for HO-9.
+    silently trimmed, case-folded, or otherwise rewritten. Passwords are limited
+    to 72 UTF-8 bytes. New passwords above this limit fail validation; overlong
+    login or current-password inputs are rejected as invalid credentials. Legacy
+    BCrypt credentials created from longer inputs require recovery; verification
+    does not accept truncated equivalents. Automated password reset is not
+    available in the MVP. Other fields are not normalized unless their own
+    contract explicitly says so.
+
+    Fetch a CSRF token before unsafe requests and again after login, which
+    rotates both the session identifier and CSRF token. Logout invalidates the
+    current session. Password change requires the current password and revokes
+    all account sessions. Regular sessions expire after 30 minutes idle or 8
+    hours from login; opt-in persistent sessions expire after 7 days idle or
+    30 days from login. Cookies are HttpOnly, SameSite=Lax and Secure by default.
 
     Error codes and status meanings:
     * 400 VALIDATION_ERROR: request validation failed; fieldErrors identifies fields.
@@ -26,6 +37,7 @@ info:
       fieldErrors is included when the deserializer has a field path.
     * 400 MALFORMED_JSON: body is missing or cannot be parsed as JSON.
     * 401 UNAUTHORIZED: authentication is required.
+    * 401 INVALID_CREDENTIALS: the supplied login or current-password credentials are invalid.
     * 403 FORBIDDEN: an authenticated caller is denied access.
     * 404 NOT_FOUND (planned): a resource is absent or inaccessible in the
       caller's household; responses must not reveal which case applies.
@@ -33,6 +45,7 @@ info:
       checking and unchanged persisted state are verified in the command ticket.
     * 415 UNSUPPORTED_MEDIA_TYPE: the request content type is unsupported.
     * 429 RATE_LIMITED (planned): a request exceeded a configured rate limit.
+    * 409 EMAIL_ALREADY_REGISTERED: the normalized email is already associated with an account.
 
     Field paths use dot-separated property names and zero-based array indexes,
     for example items[0].status. Paths stop before user-supplied map keys.
@@ -41,6 +54,102 @@ info:
     implemented and tested with their corresponding feature.
 
 paths:
+  /api/v1/auth/register:
+    post:
+      summary: Sign up
+      operationId: registerAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Sign up response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/EmailAlreadyRegistered"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+      security: []
+  /api/v1/auth/csrf:
+    get:
+      summary: Get CSRF token
+      operationId: getCsrfToken
+      responses:
+        "200":
+          description: Get CSRF token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CsrfTokenResponse"
+      security: []
+  /api/v1/auth/login:
+    post:
+      summary: Log in
+      operationId: logIn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Log in response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+      security: []
+
+  /api/v1/auth/password:
+    post:
+      summary: Change password and revoke all sessions
+      operationId: changePassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+      responses:
+        "204":
+          description: Password changed; authenticate again
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+  /api/v1/auth/logout:
+    post:
+      summary: Invalidate the current session
+      operationId: logOut
+      responses:
+        "204":
+          description: Session invalidated
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /api/v1/tasks/{taskId}:
     get:
       description: Planned operation; not yet implemented.
@@ -75,13 +184,13 @@ components:
       name: SESSION
   responses:
     Unauthorized:
-      description: Authentication required
+      description: Authentication required or invalid credentials
       content:
         application/problem+json:
           schema:
             $ref: "#/components/schemas/ApiProblem"
     Forbidden:
-      description: Access denied
+      description: Access denied or missing or invalid CSRF token
       content:
         application/problem+json:
           schema:
@@ -122,8 +231,80 @@ components:
         application/problem+json:
           schema:
             $ref: "#/components/schemas/ApiProblem"
+    EmailAlreadyRegistered:
+      description: Such email is already registered.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ApiProblem"
 
   schemas:
+    ChangePasswordRequest:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword:
+          type: string
+          format: password
+          writeOnly: true
+        newPassword:
+          type: string
+          format: password
+          writeOnly: true
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          format: password
+          writeOnly: true
+      required:
+        - email
+        - password
+
+    AccountResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+      required:
+        - id
+        - email
+    CsrfTokenResponse:
+      type: object
+      properties:
+        headerName:
+          type: string
+        token:
+          type: string
+      required:
+        - headerName
+        - token
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          format: password
+          writeOnly: true
+        rememberMe:
+          type: boolean
+          default: false
+      required:
+        - email
+        - password
     FieldErrorDetail:
       type: object
       required:
@@ -171,6 +352,8 @@ components:
             - VERSION_CONFLICT
             - UNSUPPORTED_MEDIA_TYPE
             - RATE_LIMITED
+            - EMAIL_ALREADY_REGISTERED
+            - INVALID_CREDENTIALS
 
         fieldErrors:
           type: array
