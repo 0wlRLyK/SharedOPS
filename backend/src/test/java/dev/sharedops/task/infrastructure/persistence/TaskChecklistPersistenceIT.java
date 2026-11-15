@@ -27,15 +27,20 @@ class TaskChecklistPersistenceIT {
   @Test
   void deletingChecklistEntryPreservesTaskAndOtherEntries() {
     UUID householdId = UUID.randomUUID();
-    UUID taskId = UUID.randomUUID();
-    UUID checklistEntryA = UUID.randomUUID();
-    UUID checklistEntryB = UUID.randomUUID();
 
     jdbcTemplate.update("INSERT INTO households (id) VALUES (?)", householdId);
-    TaskEntity task = new TaskEntity(taskId, householdId);
-    task.addChecklistEntry(new ChecklistEntryEntity(checklistEntryA, task, "Text A", false, 0));
-    task.addChecklistEntry(new ChecklistEntryEntity(checklistEntryB, task, "Text B", false, 1));
+    TaskEntity task = new TaskEntity(householdId);
+    ChecklistEntryEntity entryA = new ChecklistEntryEntity(task, "Text A", false, 0);
+    ChecklistEntryEntity entryB = new ChecklistEntryEntity(task, "Text B", false, 1);
+    task.addChecklistEntry(entryA);
+    task.addChecklistEntry(entryB);
     entityManager.persist(task);
+    UUID taskId = task.getId();
+    UUID checklistEntryA = entryA.getId();
+    UUID checklistEntryB = entryB.getId();
+    assertThat(taskId).isNotNull();
+    assertThat(checklistEntryA).isNotNull();
+    assertThat(checklistEntryB).isNotNull().isNotEqualTo(checklistEntryA);
     entityManager.flush();
     entityManager.clear();
 
@@ -45,7 +50,6 @@ class TaskChecklistPersistenceIT {
             .filter(t -> t.getId().equals(checklistEntryA))
             .findFirst()
             .orElseThrow();
-    ;
     loadedTask.removeChecklistEntry(loadedChecklistEntry);
     entityManager.flush();
 

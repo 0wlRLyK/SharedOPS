@@ -28,9 +28,11 @@ class TaskChecklistTransactionRollbackIT {
   @Test
   void rollsBackWhenExplicitFlushFails() {
     UUID householdId = UUID.randomUUID();
-    UUID taskId = UUID.randomUUID();
-    UUID checklistEntryA = UUID.randomUUID();
-    UUID checklistEntryB = UUID.randomUUID();
+    TaskEntity task = new TaskEntity(householdId);
+    ChecklistEntryEntity entryA = new ChecklistEntryEntity(task, "Text A", false, 0);
+    ChecklistEntryEntity entryB = new ChecklistEntryEntity(task, "Text B", false, 0);
+    task.addChecklistEntry(entryA);
+    task.addChecklistEntry(entryB);
 
     try {
       jdbcTemplate.update("INSERT INTO households (id) VALUES (?)", householdId);
@@ -38,35 +40,33 @@ class TaskChecklistTransactionRollbackIT {
               () ->
                   transactionTemplate.executeWithoutResult(
                       status -> {
-                        TaskEntity task = new TaskEntity(taskId, householdId);
-                        task.addChecklistEntry(
-                            new ChecklistEntryEntity(checklistEntryA, task, "Text A", false, 0));
-                        task.addChecklistEntry(
-                            new ChecklistEntryEntity(checklistEntryB, task, "Text B", false, 0));
                         entityManager.persist(task);
                         entityManager.flush();
                       }))
           .hasRootCauseInstanceOf(PSQLException.class);
 
+      assertThat(task.getId()).isNotNull();
+      assertThat(entryA.getId()).isNotNull();
+      assertThat(entryB.getId()).isNotNull().isNotEqualTo(entryA.getId());
       assertThat(
               jdbcTemplate.queryForObject(
                   "SELECT COUNT(*) FROM households WHERE id = ?", Integer.class, householdId))
           .isEqualTo(1);
       assertThat(
               jdbcTemplate.queryForObject(
-                  "SELECT COUNT(*) FROM tasks WHERE id = ?", Integer.class, taskId))
+                  "SELECT COUNT(*) FROM tasks WHERE id = ?", Integer.class, task.getId()))
           .isEqualTo(0);
       assertThat(
               jdbcTemplate.queryForObject(
                   "SELECT COUNT(*) FROM checklist_entries WHERE id = ?",
                   Integer.class,
-                  checklistEntryB))
+                  entryB.getId()))
           .isEqualTo(0);
       assertThat(
               jdbcTemplate.queryForObject(
                   "SELECT COUNT(*) FROM checklist_entries WHERE id = ?",
                   Integer.class,
-                  checklistEntryA))
+                  entryA.getId()))
           .isEqualTo(0);
     } finally {
       jdbcTemplate.update("DELETE FROM households WHERE id = ?", householdId);
@@ -76,42 +76,42 @@ class TaskChecklistTransactionRollbackIT {
   @Test
   void rollsBackWhenImplicitFlushFailsAtCommit() {
     UUID householdId = UUID.randomUUID();
-    UUID taskId = UUID.randomUUID();
-    UUID checklistEntryA = UUID.randomUUID();
-    UUID checklistEntryB = UUID.randomUUID();
+    TaskEntity task = new TaskEntity(householdId);
+    ChecklistEntryEntity entryA = new ChecklistEntryEntity(task, "Text A", false, 0);
+    ChecklistEntryEntity entryB = new ChecklistEntryEntity(task, "Text B", false, 0);
+    task.addChecklistEntry(entryA);
+    task.addChecklistEntry(entryB);
     try {
       jdbcTemplate.update("INSERT INTO households (id) VALUES (?)", householdId);
       assertThatThrownBy(
               () ->
                   transactionTemplate.executeWithoutResult(
                       status -> {
-                        TaskEntity task = new TaskEntity(taskId, householdId);
-                        task.addChecklistEntry(
-                            new ChecklistEntryEntity(checklistEntryA, task, "Text A", false, 0));
-                        task.addChecklistEntry(
-                            new ChecklistEntryEntity(checklistEntryB, task, "Text B", false, 0));
                         entityManager.persist(task);
                       }))
           .hasRootCauseInstanceOf(PSQLException.class);
+      assertThat(task.getId()).isNotNull();
+      assertThat(entryA.getId()).isNotNull();
+      assertThat(entryB.getId()).isNotNull().isNotEqualTo(entryA.getId());
       assertThat(
               jdbcTemplate.queryForObject(
                   "SELECT COUNT(*) FROM households WHERE id = ?", Integer.class, householdId))
           .isEqualTo(1);
       assertThat(
               jdbcTemplate.queryForObject(
-                  "SELECT COUNT(*) FROM tasks WHERE id = ?", Integer.class, taskId))
+                  "SELECT COUNT(*) FROM tasks WHERE id = ?", Integer.class, task.getId()))
           .isEqualTo(0);
       assertThat(
               jdbcTemplate.queryForObject(
                   "SELECT COUNT(*) FROM checklist_entries WHERE id = ?",
                   Integer.class,
-                  checklistEntryB))
+                  entryB.getId()))
           .isEqualTo(0);
       assertThat(
               jdbcTemplate.queryForObject(
                   "SELECT COUNT(*) FROM checklist_entries WHERE id = ?",
                   Integer.class,
-                  checklistEntryA))
+                  entryA.getId()))
           .isEqualTo(0);
     } finally {
       jdbcTemplate.update("DELETE FROM households WHERE id = ?", householdId);

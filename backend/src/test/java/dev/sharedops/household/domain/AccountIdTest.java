@@ -6,25 +6,25 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-public class UserIdTest {
+public class AccountIdTest {
   @Test
   public void whenNullValuePassed() {
-    assertThatThrownBy(() -> new UserId(null))
+    assertThatThrownBy(() -> new AccountId(null))
         .isInstanceOf(NullPointerException.class)
-        .hasMessageContaining("UserId must not be null");
+        .hasMessageContaining("AccountId must not be null");
   }
 
   @Test
   public void whenCorrectValuePassed() {
     UUID value = UUID.randomUUID();
-    assertThat(new UserId(value).id()).isEqualTo(value);
+    assertThat(new AccountId(value).id()).isEqualTo(value);
   }
 
   @Test
   public void equalIdsHaveEqualValuesAndHashes() {
     UUID value = UUID.randomUUID();
-    UserId first = new UserId(value);
-    UserId second = new UserId(value);
+    AccountId first = new AccountId(value);
+    AccountId second = new AccountId(value);
 
     assertThat(first).isEqualTo(second);
     assertThat(first.hashCode()).isEqualTo(second.hashCode());

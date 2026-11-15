@@ -11,7 +11,7 @@ SharedOPS uses PostgreSQL 18 with Spring Data JPA/Hibernate, Flyway migrations, 
 - **Open Session in View:** Disabled.
 - **Connection pooling:** HikariCP.
 
-The committed business schema is managed through Flyway. Hibernate validates mapped tables but does not create or modify them. JDBC session schema and its migration are pending the session implementation in HO-9; test configuration currently permits separate session schema initialization.
+The committed business schema is managed through Flyway. Hibernate validates mapped tables but does not create or modify them. JDBC session tables are managed by Flyway migrations V3 and V5; automatic Spring Session schema initialization is disabled. HO-9 session behavior still requires integration verification.
 
 ## Connection Pool Configuration
 

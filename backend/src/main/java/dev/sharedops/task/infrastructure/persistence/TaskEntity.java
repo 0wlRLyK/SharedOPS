@@ -3,6 +3,8 @@ package dev.sharedops.task.infrastructure.persistence;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -15,6 +17,7 @@ import java.util.UUID;
 @Table(name = "tasks")
 public class TaskEntity {
   @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
   @Column(name = "id")
   private UUID id;
 
@@ -27,16 +30,11 @@ public class TaskEntity {
   @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<ChecklistEntryEntity> checklistEntries = new ArrayList<>();
 
-  public TaskEntity(UUID taskId, UUID householdId) {
-    this.id = taskId;
+  public TaskEntity(UUID householdId) {
     this.householdId = householdId;
   }
 
   public TaskEntity() {}
-
-  public void setId(UUID id) {
-    this.id = id;
-  }
 
   public UUID getId() {
     return id;
