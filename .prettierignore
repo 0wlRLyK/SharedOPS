@@ -17,3 +17,7 @@ pnpm-lock.yaml
 
 # HTML is outside the current formatter baseline
 **/*.html
+
+# Spec Kit managed files
+.agents/skills/speckit-*/
+.specify/templates/
