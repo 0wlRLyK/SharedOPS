@@ -37,7 +37,9 @@ public class ChecklistPositionRaceIT {
     ConcurrentLinkedQueue<Long> transactionIds = new ConcurrentLinkedQueue<>();
 
     try {
-      jdbcTemplate.update("INSERT INTO households (id) VALUES (?)", householdId);
+      jdbcTemplate.update(
+          "INSERT INTO households (id, name, currency, timezone) VALUES (?, 'Fixture', 'EUR', 'Europe/Berlin')",
+          householdId);
 
       jdbcTemplate.update(
           "INSERT INTO tasks (id, household_id) VALUES (?, ?)", taskId, householdId);

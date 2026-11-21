@@ -5,5 +5,5 @@ import org.springframework.modulith.NamedInterface;
 
 @NamedInterface(value = "lookup", propagate = true)
 public interface HouseholdLookup {
-  boolean existsById(HouseholdId id);
+  boolean isAccessible(HouseholdId id);
 }
