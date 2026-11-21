@@ -35,7 +35,9 @@ class TaskChecklistTransactionRollbackIT {
     task.addChecklistEntry(entryB);
 
     try {
-      jdbcTemplate.update("INSERT INTO households (id) VALUES (?)", householdId);
+      jdbcTemplate.update(
+          "INSERT INTO households (id, name, currency, timezone) VALUES (?, 'Fixture', 'EUR', 'Europe/Berlin')",
+          householdId);
       assertThatThrownBy(
               () ->
                   transactionTemplate.executeWithoutResult(
@@ -82,7 +84,9 @@ class TaskChecklistTransactionRollbackIT {
     task.addChecklistEntry(entryA);
     task.addChecklistEntry(entryB);
     try {
-      jdbcTemplate.update("INSERT INTO households (id) VALUES (?)", householdId);
+      jdbcTemplate.update(
+          "INSERT INTO households (id, name, currency, timezone) VALUES (?, 'Fixture', 'EUR', 'Europe/Berlin')",
+          householdId);
       assertThatThrownBy(
               () ->
                   transactionTemplate.executeWithoutResult(

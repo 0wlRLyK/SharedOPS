@@ -26,8 +26,12 @@ class DatabaseConstraintsIT {
     UUID responsibilityId = UUID.randomUUID();
     UUID taskId = UUID.randomUUID();
 
-    jdbcTemplate.update("INSERT INTO households (id) VALUES (?)", householdA);
-    jdbcTemplate.update("INSERT INTO households (id) VALUES (?)", householdB);
+    jdbcTemplate.update(
+        "INSERT INTO households (id, name, currency, timezone) VALUES (?, 'Fixture', 'EUR', 'Europe/Berlin')",
+        householdA);
+    jdbcTemplate.update(
+        "INSERT INTO households (id, name, currency, timezone) VALUES (?, 'Fixture', 'EUR', 'Europe/Berlin')",
+        householdB);
     jdbcTemplate.update(
         "INSERT INTO responsibilities (id, household_id) VALUES (?, ?)",
         responsibilityId,
@@ -51,7 +55,9 @@ class DatabaseConstraintsIT {
     UUID checklistEntryA = UUID.randomUUID();
     UUID checklistEntryB = UUID.randomUUID();
 
-    jdbcTemplate.update("INSERT INTO households (id) VALUES (?)", householdId);
+    jdbcTemplate.update(
+        "INSERT INTO households (id, name, currency, timezone) VALUES (?, 'Fixture', 'EUR', 'Europe/Berlin')",
+        householdId);
     jdbcTemplate.update("INSERT INTO tasks (id, household_id) VALUES (?, ?)", taskId, householdId);
     jdbcTemplate.update(
         "INSERT INTO checklist_entries (id, task_id, text, is_completed, position) VALUES (?, ?, ?, ?, ?)",
@@ -80,7 +86,9 @@ class DatabaseConstraintsIT {
     UUID taskId = UUID.randomUUID();
     UUID checklistEntryA = UUID.randomUUID();
 
-    jdbcTemplate.update("INSERT INTO households (id) VALUES (?)", householdId);
+    jdbcTemplate.update(
+        "INSERT INTO households (id, name, currency, timezone) VALUES (?, 'Fixture', 'EUR', 'Europe/Berlin')",
+        householdId);
     jdbcTemplate.update("INSERT INTO tasks (id, household_id) VALUES (?, ?)", taskId, householdId);
     assertThatThrownBy(
             () ->

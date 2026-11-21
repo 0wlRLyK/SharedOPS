@@ -85,9 +85,9 @@ dev.sharedops.household/
     └── HouseholdId.java        # Domain value object
 ```
 
-`HouseholdLookup` declares `boolean existsById(HouseholdId id)`. The interface is annotated with `@NamedInterface(value = "lookup", propagate = true)`, so `HouseholdId` remains in `household.domain` while also being included in the exported `lookup` interface. The domain type is not annotated with Spring annotations.
+`HouseholdLookup` declares `boolean isAccessible(HouseholdId id)`. The operation derives the authenticated account for each call and returns true only for its active membership; missing identity, foreign and absent households return false. It does not disclose global existence. The interface is annotated with `@NamedInterface(value = "lookup", propagate = true)`, so `HouseholdId` remains in `household.domain` while also being included in the exported `lookup` interface. The domain type is not annotated with Spring annotations.
 
-`task` permits `household::lookup` rather than an unrestricted `household` dependency, while its existing `responsibility` permission remains unchanged. The contract declares a boundary; a concrete lookup implementation is **not** part of HO-005.
+`task` permits `household::lookup` rather than an unrestricted `household` dependency, while its existing `responsibility` permission remains unchanged. The application boundary uses a membership port and never exports its persistence adapter. Replacing `existsById` is a source, binary and semantic break: consumers must migrate to `isAccessible` and provide an authenticated server context. No in-repository production caller was identified; external consumers remain unknown and require separate downstream compatibility sign-off before integration or deployment.
 
 Other cross-module interfaces should be introduced when a use case requires them, not preemptively for all modules.
 

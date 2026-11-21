@@ -28,7 +28,9 @@ class TaskChecklistPersistenceIT {
   void deletingChecklistEntryPreservesTaskAndOtherEntries() {
     UUID householdId = UUID.randomUUID();
 
-    jdbcTemplate.update("INSERT INTO households (id) VALUES (?)", householdId);
+    jdbcTemplate.update(
+        "INSERT INTO households (id, name, currency, timezone) VALUES (?, 'Fixture', 'EUR', 'Europe/Berlin')",
+        householdId);
     TaskEntity task = new TaskEntity(householdId);
     ChecklistEntryEntity entryA = new ChecklistEntryEntity(task, "Text A", false, 0);
     ChecklistEntryEntity entryB = new ChecklistEntryEntity(task, "Text B", false, 1);
