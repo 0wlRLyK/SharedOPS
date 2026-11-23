@@ -41,6 +41,7 @@ info:
     * 403 FORBIDDEN: an authenticated caller is denied access.
     * 404 NOT_FOUND: a resource is absent or inaccessible in the
       caller's household; responses must not reveal which case applies.
+    * 409 INVITATION_CONFLICT: invitation cannot be used due to membership, capacity, or terminal state.
     * 409 ACTIVE_HOUSEHOLD_EXISTS: account already has an active household membership.
     * 409 VERSION_CONFLICT: a command's body version is stale. Transactional
       checking and unchanged persisted state are verified in the command ticket.
@@ -126,6 +127,89 @@ paths:
                   status: { const: 404 }
                   detail: { const: "Resource not found." }
                   code: { const: "NOT_FOUND" }
+  /api/v1/households/{householdId}/invitations:
+    parameters:
+      - $ref: "#/components/parameters/HouseholdId"
+    post:
+      summary: Create a single-use household invitation
+      description: The secret is returned once and expires 24 hours after creation. Share it securely outside this API.
+      operationId: createInvitation
+      responses:
+        "201":
+          description: Invitation created; response contains its bearer secret once.
+          headers:
+            Cache-Control:
+              description: The response must not be stored.
+              schema: { type: string, const: no-store }
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvitationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v1/households/{householdId}/invitations/{invitationId}:
+    parameters:
+      - $ref: "#/components/parameters/HouseholdId"
+      - name: invitationId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    delete:
+      summary: Revoke an unused household invitation
+      operationId: revokeInvitation
+      responses:
+        "204":
+          description: Invitation revoked.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/InvitationConflict"
+  /api/v1/invitations/accept:
+    post:
+      summary: Accept a single-use invitation
+      description: Supply the bearer secret only in the request body. Unknown, expired, revoked and consumed invitations have the same response.
+      operationId: acceptInvitation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvitationAcceptRequest"
+      responses:
+        "200":
+          description: Household joined and invitation consumed atomically.
+          headers:
+            Cache-Control:
+              description: The response must not be stored.
+              schema: { type: string, const: no-store }
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HouseholdResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/InvitationConflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
   /api/v1/auth/register:
     post:
       summary: Sign up
@@ -249,12 +333,24 @@ paths:
           $ref: "#/components/responses/Forbidden"
 
 components:
+  parameters:
+    HouseholdId:
+      name: householdId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
   securitySchemes:
     sessionCookie:
       type: apiKey
       in: cookie
       name: SESSION
   responses:
+    InvitationConflict:
+      description: Invitation cannot be used due to active membership, capacity, or terminal state.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ApiProblem"
     Unauthorized:
       description: Authentication required or invalid credentials
       content:
@@ -311,6 +407,31 @@ components:
             $ref: "#/components/schemas/ApiProblem"
 
   schemas:
+    InvitationAcceptRequest:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+          minLength: 43
+          maxLength: 43
+          pattern: "^[A-Za-z0-9_-]{43}$"
+          description: Canonical unpadded base64url encoding of a 32-byte bearer secret; never include in a URL.
+    InvitationResponse:
+      type: object
+      required: [id, token, expiresAt]
+      properties:
+        id: { type: string, format: uuid }
+        token:
+          type: string
+          minLength: 43
+          maxLength: 43
+          pattern: "^[A-Za-z0-9_-]{43}$"
+          description: One-time bearer secret, returned only on creation.
+        expiresAt:
+          type: string
+          format: date-time
+          description: Deadline exactly 24 hours after creation; invalid at or after this instant.
     HouseholdCreateRequest:
       type: object
       required: [name, currency]
@@ -443,6 +564,7 @@ components:
           description: Stable application error code; planned codes are described above.
           enum:
             - ACTIVE_HOUSEHOLD_EXISTS
+            - INVITATION_CONFLICT
             - VALIDATION_ERROR
             - INVALID_VALUE
             - MALFORMED_JSON

@@ -37,27 +37,27 @@ class HouseholdMigrationIT {
         other);
     try {
       jdbc.update(
-          "INSERT INTO household_memberships VALUES (?, ?, ?, true)",
+          "INSERT INTO household_memberships (id, account_id, household_id, active, slot) VALUES (?, ?, ?, true, 1)",
           UUID.randomUUID(),
           actor,
           household);
       assertThatThrownBy(
               () ->
                   jdbc.update(
-                      "INSERT INTO household_memberships VALUES (?, ?, ?, true)",
+                      "INSERT INTO household_memberships (id, account_id, household_id, active, slot) VALUES (?, ?, ?, true, 1)",
                       UUID.randomUUID(),
                       actor,
                       other))
           .isInstanceOf(DataIntegrityViolationException.class);
       jdbc.update(
-          "INSERT INTO household_memberships VALUES (?, ?, ?, false)",
+          "INSERT INTO household_memberships (id, account_id, household_id, active, slot) VALUES (?, ?, ?, false, NULL)",
           UUID.randomUUID(),
           actor,
           other);
       assertThatThrownBy(
               () ->
                   jdbc.update(
-                      "INSERT INTO household_memberships VALUES (?, ?, ?, true)",
+                      "INSERT INTO household_memberships (id, account_id, household_id, active, slot) VALUES (?, ?, ?, true, 1)",
                       UUID.randomUUID(),
                       UUID.randomUUID(),
                       household))
@@ -65,7 +65,7 @@ class HouseholdMigrationIT {
       assertThatThrownBy(
               () ->
                   jdbc.update(
-                      "INSERT INTO household_memberships VALUES (?, ?, ?, false)",
+                      "INSERT INTO household_memberships (id, account_id, household_id, active, slot) VALUES (?, ?, ?, false, NULL)",
                       UUID.randomUUID(),
                       actor,
                       UUID.randomUUID()))
@@ -98,6 +98,12 @@ class HouseholdMigrationIT {
       memberships.insertActive(actor, household.id());
       assertThat(memberships.findActiveHouseholdId(actor)).contains(household.id());
       assertThat(memberships.isActiveMember(actor, household.id())).isTrue();
+      assertThat(
+              jdbc.queryForObject(
+                  "SELECT slot FROM household_memberships WHERE account_id = ? AND active",
+                  Integer.class,
+                  actor))
+          .isEqualTo(1);
       assertThat(
               jdbc.queryForObject(
                   "SELECT count(*) FROM household_memberships WHERE account_id = ? AND household_id = ? AND active",

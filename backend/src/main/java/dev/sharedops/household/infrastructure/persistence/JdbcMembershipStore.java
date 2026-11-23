@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public class JdbcMembershipStore implements MembershipStore {
@@ -37,11 +38,27 @@ public class JdbcMembershipStore implements MembershipStore {
   }
 
   @Override
+  @Transactional
   public void insertActive(UUID accountId, UUID householdId) {
+    // The household row is the shared serialization point for every membership writer.
+    jdbc.queryForObject(
+        "SELECT id FROM households WHERE id = ? FOR UPDATE", UUID.class, householdId);
+    List<Integer> available =
+        jdbc.queryForList(
+            "SELECT candidate.slot FROM (VALUES (1), (2)) AS candidate(slot) "
+                + "WHERE NOT EXISTS (SELECT 1 FROM household_memberships m "
+                + "WHERE m.household_id = ? AND m.active AND m.slot = candidate.slot) "
+                + "ORDER BY candidate.slot LIMIT 1",
+            Integer.class,
+            householdId);
+    if (available.isEmpty()) {
+      throw new IllegalStateException("Household has no available membership slot");
+    }
     jdbc.update(
-        "INSERT INTO household_memberships (id,account_id,household_id,active) VALUES (?, ?, ?, true)",
+        "INSERT INTO household_memberships (id,account_id,household_id,active,slot) VALUES (?, ?, ?, true, ?)",
         UUID.randomUUID(),
         accountId,
-        householdId);
+        householdId,
+        available.getFirst());
   }
 }

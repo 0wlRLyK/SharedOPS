@@ -57,7 +57,7 @@ class HouseholdLookupIT {
         homeA,
         homeB);
     jdbc.update(
-        "INSERT INTO household_memberships (id,account_id,household_id,active) VALUES (?, ?, ?, true), (?, ?, ?, true)",
+        "INSERT INTO household_memberships (id,account_id,household_id,active,slot) VALUES (?, ?, ?, true, 1), (?, ?, ?, true, 1)",
         UUID.randomUUID(),
         a,
         homeA,
@@ -90,7 +90,8 @@ class HouseholdLookupIT {
     assertDeniedUnchanged(new HouseholdId(homeB));
     assertDeniedUnchanged(new HouseholdId(UUID.randomUUID()));
     assertNoPersistenceAndUnchanged(null);
-    jdbc.update("UPDATE household_memberships SET active = false WHERE account_id = ?", a);
+    jdbc.update(
+        "UPDATE household_memberships SET active = false, slot = NULL WHERE account_id = ?", a);
     assertDeniedUnchanged(new HouseholdId(homeA));
     SecurityContextHolder.clearContext();
     assertNoPersistenceAndUnchanged(new HouseholdId(homeB));
