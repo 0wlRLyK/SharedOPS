@@ -3,6 +3,7 @@
 ## Scope and specifications
 
 - Preserve unrelated changes. Use the task's clean branch or isolated worktree and keep the diff scoped.
+- For each issue, use the dedicated named branch the owner created for that issue, including when working in an isolated worktree. Check existing branches before creating one; do not replace the owner's chosen branch with a generated name. If no dedicated branch exists, create one as `<type>/<issue-number>-<short-name>` (for example, `feat/HO-12-responsibility-ownership`), using an appropriate type such as `feat`, `chore`, `test`, or `docs`.
 - Deliver each issue on its own branch and PR with exactly one final commit. Use a Conventional Commit title and a body summarizing the issue's substantive changes; consolidate local commits before handoff.
 - Prefer codebase-memory MCP for code discovery. Use local search for literal strings, configuration, or gaps in the graph.
 - For tracked changes, read the Linear issue and use the relevant [requirements](docs/requirements.md), [decisions](docs/decision-register.md), and [constitution](.specify/memory/constitution.md). Resolve conflicting requirements with the owner before implementing the affected behavior.

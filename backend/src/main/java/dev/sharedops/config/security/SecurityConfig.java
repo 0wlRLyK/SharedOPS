@@ -89,6 +89,7 @@ public class SecurityConfig {
             session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
         .securityContext(security -> security.securityContextRepository(securityContextRepository));
 
+    http.addFilterBefore(new CurrentContextNoStoreFilter(), SecurityContextHolderFilter.class);
     http.addFilterAfter(new AbsoluteSessionExpiryFilter(clock), SecurityContextHolderFilter.class);
     CredentialVersionFilter filter = versionFilter.getIfAvailable();
     if (filter != null) {

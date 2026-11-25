@@ -470,6 +470,29 @@ paths:
           $ref: "#/components/responses/InvitationConflict"
         "415":
           $ref: "#/components/responses/UnsupportedMediaType"
+  /api/v1/auth/me:
+    get:
+      summary: Get current account and active household
+      operationId: getCurrentContext
+      responses:
+        "200":
+          description: Current account and its active household, if any.
+          headers:
+            Cache-Control:
+              description: The response must not be stored.
+              schema: { type: string, const: no-store }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CurrentContextResponse" }
+        "401":
+          description: Authentication required.
+          headers:
+            Cache-Control:
+              description: The response must not be stored.
+              schema: { type: string, const: no-store }
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/ApiProblem" }
   /api/v1/auth/register:
     post:
       summary: Sign up
@@ -845,6 +868,24 @@ components:
       required:
         - id
         - email
+    CurrentContextResponse:
+      type: object
+      required: [account, household]
+      properties:
+        account: { $ref: "#/components/schemas/AccountResponse" }
+        household:
+          oneOf:
+            - $ref: "#/components/schemas/CurrentContextHousehold"
+            - type: "null"
+    CurrentContextHousehold:
+      type: object
+      required: [id, name, icon, currency, timezone]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        icon: { type: [string, "null"] }
+        currency: { type: string }
+        timezone: { type: string }
     CsrfTokenResponse:
       type: object
       properties:

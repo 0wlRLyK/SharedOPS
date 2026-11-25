@@ -3,9 +3,11 @@ package dev.sharedops.household.api;
 import dev.sharedops.config.security.SessionPolicy;
 import dev.sharedops.household.api.dto.AccountResponse;
 import dev.sharedops.household.api.dto.CsrfTokenResponse;
+import dev.sharedops.household.api.dto.CurrentContextResponse;
 import dev.sharedops.household.api.dto.LoginRequest;
 import dev.sharedops.household.api.dto.RegisterAccountRequest;
 import dev.sharedops.household.application.AuthenticatedAccount;
+import dev.sharedops.household.application.CurrentContextService;
 import dev.sharedops.household.application.RegisterAccountService;
 import dev.sharedops.household.domain.Account;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AccountController {
 
   private final Clock clock;
+  private final CurrentContextService currentContextService;
   private final RegisterAccountService accountService;
   private final AuthenticationManager authenticationManager;
   private final SecurityContextRepository securityContextRepository;
@@ -40,11 +43,13 @@ public class AccountController {
 
   AccountController(
       Clock clock,
+      CurrentContextService currentContextService,
       RegisterAccountService accountService,
       AuthenticationManager authenticationManager,
       SecurityContextRepository securityContextRepository,
       SessionAuthenticationStrategy sessionAuthenticationStrategy) {
     this.clock = clock;
+    this.currentContextService = currentContextService;
     this.accountService = accountService;
     this.authenticationManager = authenticationManager;
     this.securityContextRepository = securityContextRepository;
@@ -59,6 +64,22 @@ public class AccountController {
     AccountResponse accountResponse =
         new AccountResponse(createdAccount.getId().id(), createdAccount.getEmail());
     return new ResponseEntity<>(accountResponse, HttpStatus.CREATED);
+  }
+
+  @GetMapping("/me")
+  public CurrentContextResponse getCurrentContext() {
+    var context = currentContextService.get();
+    var household = context.household();
+    return new CurrentContextResponse(
+        new AccountResponse(context.accountId(), context.email()),
+        household == null
+            ? null
+            : new CurrentContextResponse.Household(
+                household.id(),
+                household.name(),
+                household.icon(),
+                household.currency(),
+                household.timezone()));
   }
 
   @GetMapping("/csrf")
