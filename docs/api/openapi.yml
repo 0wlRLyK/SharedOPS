@@ -127,6 +127,266 @@ paths:
                   status: { const: 404 }
                   detail: { const: "Resource not found." }
                   code: { const: "NOT_FOUND" }
+  /api/v1/households/{householdId}/responsibilities:
+    parameters:
+      - $ref: "#/components/parameters/HouseholdId"
+    post:
+      summary: Create an individual responsibility
+      operationId: createResponsibility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResponsibilityCreateRequest" }
+      responses:
+        "201":
+          description: Responsibility created.
+          headers:
+            Location:
+              schema: { type: string, format: uri-reference }
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponsibilityResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+    get:
+      summary: List current or archived responsibilities
+      description: Current includes ACTIVE and PAUSED; results are ordered by ID.
+      operationId: listResponsibilities
+      parameters:
+        - name: view
+          in: query
+          required: true
+          schema: { type: string, enum: [current, archived] }
+      responses:
+        "200":
+          description: Responsibilities in the selected view.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ResponsibilityResponse" }
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v1/households/{householdId}/responsibilities/{responsibilityId}:
+    parameters:
+      - $ref: "#/components/parameters/HouseholdId"
+      - $ref: "#/components/parameters/ResponsibilityId"
+    get:
+      operationId: getResponsibility
+      summary: getResponsibility
+      responses:
+        "200":
+          description: Responsibility returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponsibilityResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v1/households/{householdId}/responsibilities/{responsibilityId}/details:
+    parameters:
+      - $ref: "#/components/parameters/HouseholdId"
+      - $ref: "#/components/parameters/ResponsibilityId"
+    put:
+      operationId: updateResponsibilityDetails
+      summary: updateResponsibilityDetails
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResponsibilityDetailsRequest" }
+      responses:
+        "200":
+          description: Responsibility returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponsibilityResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/ResponsibilityConflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+  /api/v1/households/{householdId}/responsibilities/{responsibilityId}/transfer:
+    parameters:
+      - $ref: "#/components/parameters/HouseholdId"
+      - $ref: "#/components/parameters/ResponsibilityId"
+    post:
+      operationId: transferResponsibility
+      summary: transferResponsibility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResponsibilityTransferRequest" }
+      responses:
+        "200":
+          description: Responsibility returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponsibilityResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/ResponsibilityConflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+  /api/v1/households/{householdId}/responsibilities/{responsibilityId}/pause:
+    parameters:
+      - $ref: "#/components/parameters/HouseholdId"
+      - $ref: "#/components/parameters/ResponsibilityId"
+    post:
+      operationId: pauseResponsibility
+      summary: pauseResponsibility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResponsibilityVersionRequest" }
+      responses:
+        "200":
+          description: Responsibility returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponsibilityResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/ResponsibilityConflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+  /api/v1/households/{householdId}/responsibilities/{responsibilityId}/resume:
+    parameters:
+      - $ref: "#/components/parameters/HouseholdId"
+      - $ref: "#/components/parameters/ResponsibilityId"
+    post:
+      operationId: resumeResponsibility
+      summary: resumeResponsibility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResponsibilityVersionRequest" }
+      responses:
+        "200":
+          description: Responsibility returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponsibilityResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/ResponsibilityConflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+  /api/v1/households/{householdId}/responsibilities/{responsibilityId}/archive:
+    parameters:
+      - $ref: "#/components/parameters/HouseholdId"
+      - $ref: "#/components/parameters/ResponsibilityId"
+    post:
+      operationId: archiveResponsibility
+      summary: archiveResponsibility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResponsibilityVersionRequest" }
+      responses:
+        "200":
+          description: Responsibility returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponsibilityResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/ResponsibilityConflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+  /api/v1/households/{householdId}/responsibilities/{responsibilityId}/restore:
+    parameters:
+      - $ref: "#/components/parameters/HouseholdId"
+      - $ref: "#/components/parameters/ResponsibilityId"
+    post:
+      operationId: restoreResponsibility
+      summary: restoreResponsibility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResponsibilityRestoreRequest" }
+      responses:
+        "200":
+          description: Responsibility returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponsibilityResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/ResponsibilityConflict"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
   /api/v1/households/{householdId}/invitations:
     parameters:
       - $ref: "#/components/parameters/HouseholdId"
@@ -339,12 +599,22 @@ components:
       in: path
       required: true
       schema: { type: string, format: uuid }
+    ResponsibilityId:
+      name: responsibilityId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
   securitySchemes:
     sessionCookie:
       type: apiKey
       in: cookie
       name: SESSION
   responses:
+    ResponsibilityConflict:
+      description: VERSION_CONFLICT for a stale version or INVALID_STATE for an invalid lifecycle transition.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/ApiProblem" }
     InvitationConflict:
       description: Invitation cannot be used due to active membership, capacity, or terminal state.
       content:
@@ -407,6 +677,83 @@ components:
             $ref: "#/components/schemas/ApiProblem"
 
   schemas:
+    ResponsibilityCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [title, mode, ownerAccountId]
+      properties:
+        title:
+          {
+            type: string,
+            pattern: '^(?![\s\S]*\u0000)[\s\S]*[^\u0009-\u000D\u001C-\u0020\u1680\u2000-\u2006\u2008-\u200A\u2028\u2029\u205F\u3000]',
+          }
+        description:
+          {
+            type: [string, "null"],
+            pattern: '^[^\u0000]*$',
+            description: "Omitted or null means no description; empty string is retained.",
+          }
+        mode: { type: string, enum: [INDIVIDUAL] }
+        ownerAccountId: { type: string, format: uuid }
+    ResponsibilityDetailsRequest:
+      type: object
+      additionalProperties: false
+      required: [version, title]
+      properties:
+        version: { $ref: "#/components/schemas/ResponsibilityVersion" }
+        title:
+          {
+            type: string,
+            pattern: '^(?![\s\S]*\u0000)[\s\S]*[^\u0009-\u000D\u001C-\u0020\u1680\u2000-\u2006\u2008-\u200A\u2028\u2029\u205F\u3000]',
+          }
+        description:
+          {
+            type: [string, "null"],
+            pattern: '^[^\u0000]*$',
+            description: "Omitted or null clears; empty string is retained.",
+          }
+    ResponsibilityTransferRequest:
+      type: object
+      additionalProperties: false
+      required: [version, ownerAccountId]
+      properties:
+        version: { $ref: "#/components/schemas/ResponsibilityVersion" }
+        ownerAccountId: { type: string, format: uuid }
+    ResponsibilityVersionRequest:
+      type: object
+      additionalProperties: false
+      required: [version]
+      properties:
+        version: { $ref: "#/components/schemas/ResponsibilityVersion" }
+    ResponsibilityRestoreRequest:
+      type: object
+      additionalProperties: false
+      required: [version]
+      properties:
+        version: { $ref: "#/components/schemas/ResponsibilityVersion" }
+        ownerAccountId:
+          {
+            type: string,
+            format: uuid,
+            description: "Omit to use the active historical owner; null is invalid.",
+          }
+    ResponsibilityVersion:
+      type: integer
+      format: int64
+      minimum: 0
+      maximum: 9223372036854775807
+    ResponsibilityResponse:
+      type: object
+      required: [id, householdId, title, description, mode, status, ownerAccountId, version]
+      properties:
+        id: { type: string, format: uuid }
+        householdId: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: [string, "null"] }
+        mode: { type: string, enum: [INDIVIDUAL] }
+        status: { type: string, enum: [ACTIVE, PAUSED, ARCHIVED] }
+        ownerAccountId: { type: string, format: uuid }
+        version: { $ref: "#/components/schemas/ResponsibilityVersion" }
     InvitationAcceptRequest:
       type: object
       required: [token]
@@ -572,6 +919,8 @@ components:
             - FORBIDDEN
             - NOT_FOUND
             - VERSION_CONFLICT
+            - INVALID_OWNER
+            - INVALID_STATE
             - UNSUPPORTED_MEDIA_TYPE
             - RATE_LIMITED
             - EMAIL_ALREADY_REGISTERED

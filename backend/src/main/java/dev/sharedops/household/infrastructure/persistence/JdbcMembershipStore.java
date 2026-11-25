@@ -1,6 +1,7 @@
 package dev.sharedops.household.infrastructure.persistence;
 
 import dev.sharedops.household.application.MembershipStore;
+import dev.sharedops.household.application.ResponsibilityMembershipStore;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-public class JdbcMembershipStore implements MembershipStore {
+public class JdbcMembershipStore implements MembershipStore, ResponsibilityMembershipStore {
   private final JdbcTemplate jdbc;
 
   public JdbcMembershipStore(JdbcTemplate jdbc) {
@@ -35,6 +36,39 @@ public class JdbcMembershipStore implements MembershipStore {
             accountId,
             householdId);
     return Boolean.TRUE.equals(result);
+  }
+
+  @Override
+  public Optional<UUID> findActiveMembershipId(UUID accountId, UUID householdId) {
+    List<UUID> rows =
+        jdbc.query(
+            "SELECT id FROM household_memberships WHERE account_id = ? AND household_id = ? AND active",
+            (rs, row) -> rs.getObject(1, UUID.class),
+            accountId,
+            householdId);
+    return rows.stream().findFirst();
+  }
+
+  @Override
+  public Optional<UUID> findAccountId(UUID membershipId, UUID householdId) {
+    return jdbc
+        .query(
+            "SELECT account_id FROM household_memberships WHERE id = ? AND household_id = ?",
+            (rs, row) -> rs.getObject(1, UUID.class),
+            membershipId,
+            householdId)
+        .stream()
+        .findFirst();
+  }
+
+  @Override
+  public boolean isActiveMembership(UUID membershipId, UUID householdId) {
+    return Boolean.TRUE.equals(
+        jdbc.queryForObject(
+            "SELECT EXISTS (SELECT 1 FROM household_memberships WHERE id = ? AND household_id = ? AND active)",
+            Boolean.class,
+            membershipId,
+            householdId));
   }
 
   @Override
