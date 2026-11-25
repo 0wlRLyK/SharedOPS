@@ -23,6 +23,8 @@ class DatabaseConstraintsIT {
   public void rejectsCrossHouseholdResponsibility() {
     UUID householdA = UUID.randomUUID();
     UUID householdB = UUID.randomUUID();
+    UUID accountId = UUID.randomUUID();
+    UUID membershipId = UUID.randomUUID();
     UUID responsibilityId = UUID.randomUUID();
     UUID taskId = UUID.randomUUID();
 
@@ -33,9 +35,19 @@ class DatabaseConstraintsIT {
         "INSERT INTO households (id, name, currency, timezone) VALUES (?, 'Fixture', 'EUR', 'Europe/Berlin')",
         householdB);
     jdbcTemplate.update(
-        "INSERT INTO responsibilities (id, household_id) VALUES (?, ?)",
-        responsibilityId,
+        "INSERT INTO accounts (id, email, password_hash) VALUES (?, ?, 'hash')",
+        accountId,
+        accountId + "@example.com");
+    jdbcTemplate.update(
+        "INSERT INTO household_memberships (id, account_id, household_id, active, slot) VALUES (?, ?, ?, true, 1)",
+        membershipId,
+        accountId,
         householdA);
+    jdbcTemplate.update(
+        "INSERT INTO responsibilities (id, household_id, title, mode, status, owner_membership_id, version) VALUES (?, ?, 'Fixture', 'INDIVIDUAL', 'ACTIVE', ?, 0)",
+        responsibilityId,
+        householdA,
+        membershipId);
 
     assertThatThrownBy(
             () ->
