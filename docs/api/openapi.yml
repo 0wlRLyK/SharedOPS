@@ -9,9 +9,6 @@ info:
     This manually maintained file is the source of truth for the API contract
     (see ADR-0008). Structured errors use RFC 9457 Problem Details with
     application/problem+json; code and fieldErrors are SharedOPS extensions.
-    The task operation below is planned and is not yet implemented. Error
-    responses and input rules marked planned are commitments for subsequent
-    feature tickets, not a claim that those features are available today.
 
     Input normalization is field-specific: email is stripped of surrounding
     whitespace and lowercased using locale-independent rules before validation.
@@ -589,6 +586,68 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /api/v1/households/{householdId}/tasks:
+    parameters:
+      - $ref: "#/components/parameters/HouseholdId"
+    post:
+      summary: Create a one-off task
+      operationId: createHouseholdTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TaskCreate" }
+      responses:
+        "201":
+          description: Task created
+          headers:
+            Location:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HouseholdTask" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/ResponsibilityConflict" }
+  /api/v1/households/{householdId}/tasks/{taskId}:
+    parameters:
+      - $ref: "#/components/parameters/HouseholdId"
+      - name: taskId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      summary: Read a household task
+      operationId: getHouseholdTask
+      responses:
+        "200":
+          description: Task retrieved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HouseholdTask" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      summary: Edit an open task using its version
+      operationId: editHouseholdTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TaskEdit" }
+      responses:
+        "200":
+          description: Task updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HouseholdTask" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/ResponsibilityConflict" }
   /api/v1/tasks/{taskId}:
     get:
       description: Planned operation; not yet implemented.
@@ -700,6 +759,104 @@ components:
             $ref: "#/components/schemas/ApiProblem"
 
   schemas:
+    TaskDeadlineInput:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [kind]
+          properties:
+            kind: { const: NONE }
+        - type: object
+          additionalProperties: false
+          required: [kind, date]
+          properties:
+            kind: { const: DATE }
+            date: { type: string, format: date }
+        - type: object
+          additionalProperties: false
+          required: [kind, instant]
+          properties:
+            kind: { const: DATE_TIME }
+            instant: { type: string, format: date-time, description: UTC instant ending in Z }
+        - type: object
+          additionalProperties: false
+          required: [kind, localDateTime]
+          properties:
+            kind: { const: DATE_TIME }
+            localDateTime: { type: string, description: ISO local date-time in the household zone }
+            occurrence: { type: string, enum: [FIRST, SECOND], description: Required for overlaps }
+    TaskCreate:
+      type: object
+      additionalProperties: false
+      required: [title]
+      properties:
+        title: { type: string, minLength: 1 }
+        description: { type: [string, "null"] }
+        responsibilityId: { type: [string, "null"], format: uuid }
+        priority: { type: string, enum: [LOW, NORMAL, HIGH], default: NORMAL }
+        assigneeAccountId:
+          {
+            type: [string, "null"],
+            format: uuid,
+            description: Omission selects the responsibility owner for linked tasks; null leaves unassigned.,
+          }
+        deadline: { $ref: "#/components/schemas/TaskDeadlineInput" }
+    TaskEdit:
+      type: object
+      additionalProperties: false
+      required: [version]
+      minProperties: 2
+      properties:
+        version: { type: integer, minimum: 0, format: int64 }
+        title: { type: string, minLength: 1 }
+        description: { type: [string, "null"] }
+        priority: { type: string, enum: [LOW, NORMAL, HIGH] }
+        assigneeAccountId: { type: [string, "null"], format: uuid }
+        deadline: { $ref: "#/components/schemas/TaskDeadlineInput" }
+    HouseholdTask:
+      type: object
+      required:
+        [
+          id,
+          householdId,
+          responsibilityId,
+          title,
+          description,
+          priority,
+          status,
+          version,
+          assigneeAccountId,
+          deadline,
+          overdue,
+        ]
+      properties:
+        id: { type: string, format: uuid }
+        householdId: { type: string, format: uuid }
+        responsibilityId: { type: [string, "null"], format: uuid }
+        title: { type: string }
+        description: { type: [string, "null"] }
+        priority: { type: string, enum: [LOW, NORMAL, HIGH] }
+        status: { type: string, enum: [OPEN, COMPLETED, CANCELED, SKIPPED] }
+        version: { type: integer, minimum: 0, format: int64 }
+        assigneeAccountId: { type: [string, "null"], format: uuid }
+        deadline:
+          oneOf:
+            - type: object
+              required: [kind]
+              properties: { kind: { const: NONE } }
+            - type: object
+              required: [kind, date, zone]
+              properties:
+                {
+                  kind: { const: DATE },
+                  date: { type: string, format: date },
+                  zone: { type: string },
+                }
+            - type: object
+              required: [kind, instant]
+              properties:
+                { kind: { const: DATE_TIME }, instant: { type: string, format: date-time } }
+        overdue: { type: boolean }
     ResponsibilityCreateRequest:
       type: object
       additionalProperties: false

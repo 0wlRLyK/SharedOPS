@@ -27,11 +27,45 @@ public class TaskEntity {
   @Column(name = "responsibility_id", nullable = true)
   private UUID responsibilityId;
 
+  @Column(name = "title", nullable = false, columnDefinition = "text")
+  private String title;
+
+  @Column(name = "description", columnDefinition = "text")
+  private String description;
+
+  @Column(name = "priority", nullable = false, columnDefinition = "text")
+  private String priority = "NORMAL";
+
+  @Column(name = "status", nullable = false, columnDefinition = "text")
+  private String status = "OPEN";
+
+  @Column(name = "version", nullable = false)
+  private long version;
+
+  @Column(name = "assignee_membership_id")
+  private UUID assigneeMembershipId;
+
+  @Column(name = "deadline_kind", nullable = false, columnDefinition = "text")
+  private String deadlineKind = "NONE";
+
+  @Column(name = "due_date_iso", columnDefinition = "text")
+  private String dueDateIso;
+
+  @Column(name = "due_zone", columnDefinition = "text")
+  private String dueZone;
+
+  @Column(name = "due_epoch_second")
+  private Long dueEpochSecond;
+
+  @Column(name = "due_nano")
+  private Integer dueNano;
+
   @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<ChecklistEntryEntity> checklistEntries = new ArrayList<>();
 
-  public TaskEntity(UUID householdId) {
+  public TaskEntity(UUID householdId, String title) {
     this.householdId = householdId;
+    this.title = title;
   }
 
   public TaskEntity() {}

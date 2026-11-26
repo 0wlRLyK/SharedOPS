@@ -57,7 +57,7 @@ class ResponsibilityTransferIT {
                 principal, null, principal.getAuthorities()));
     initial = service.create(home, "Garden", null, actor);
     jdbc.update(
-        "INSERT INTO tasks (id,household_id,responsibility_id) VALUES (?, ?, ?)",
+        "INSERT INTO tasks (id,household_id,responsibility_id,title,priority,status,version,deadline_kind) VALUES (?,?,?,'Task','NORMAL','OPEN',0,'NONE')",
         task,
         home,
         initial.id());

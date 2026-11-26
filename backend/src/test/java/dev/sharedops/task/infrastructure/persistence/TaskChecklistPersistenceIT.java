@@ -31,7 +31,7 @@ class TaskChecklistPersistenceIT {
     jdbcTemplate.update(
         "INSERT INTO households (id, name, currency, timezone) VALUES (?, 'Fixture', 'EUR', 'Europe/Berlin')",
         householdId);
-    TaskEntity task = new TaskEntity(householdId);
+    TaskEntity task = new TaskEntity(householdId, "Task");
     ChecklistEntryEntity entryA = new ChecklistEntryEntity(task, "Text A", false, 0);
     ChecklistEntryEntity entryB = new ChecklistEntryEntity(task, "Text B", false, 1);
     task.addChecklistEntry(entryA);

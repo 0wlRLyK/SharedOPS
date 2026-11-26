@@ -465,7 +465,7 @@ class ResponsibilityRaceIT {
           operation.equals("restore") ? "ARCHIVED" : "ACTIVE",
           operation.equals("restore") ? recipientMember : member);
       jdbc.update(
-          "INSERT INTO tasks (id,household_id,responsibility_id) VALUES (?,?,?)",
+          "INSERT INTO tasks (id,household_id,responsibility_id,title,priority,status,version,deadline_kind) VALUES (?,?,?,'Task','NORMAL','OPEN',0,'NONE')",
           linked,
           home,
           subject);

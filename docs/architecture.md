@@ -10,15 +10,15 @@ SharedOPS is a **modular monolith** built with Java, Spring Boot, and Spring Mod
 
 Seven functional modules are declared using `@ApplicationModule` and discovered with the explicitly annotated detection strategy (`spring.modulith.detection-strategy=explicitly-annotated`):
 
-| Business module  | Responsibility                                              | Allowed module dependencies           |
-| ---------------- | ----------------------------------------------------------- | ------------------------------------- |
-| `household`      | Households; planned account and authentication capabilities | None                                  |
-| `responsibility` | Responsibilities within households                          | `household`                           |
-| `task`           | Task management                                             | `responsibility`, `household::lookup` |
-| `overview`       | Aggregated task overview                                    | `task`                                |
-| `list`           | Lists                                                       | None                                  |
-| `activity`       | Activity-related functionality                              | None                                  |
-| `finance`        | Financial functionality                                     | None                                  |
+| Business module  | Responsibility                                              | Allowed module dependencies                                                      |
+| ---------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `household`      | Households; planned account and authentication capabilities | None                                                                             |
+| `responsibility` | Responsibilities within households                          | `household`                                                                      |
+| `task`           | Task management                                             | `responsibility`, `responsibility::task`, `household::lookup`, `household::task` |
+| `overview`       | Aggregated task overview                                    | `task`                                                                           |
+| `list`           | Lists                                                       | None                                                                             |
+| `activity`       | Activity-related functionality                              | None                                                                             |
+| `finance`        | Financial functionality                                     | None                                                                             |
 
 `common` and `config` are supporting packages, **not** additional functional modules. The table documents the **currently permitted dependency graph**, not a claim that all those calls have already been implemented.
 
@@ -35,8 +35,8 @@ flowchart LR
     Finance["finance"]
 
     Responsibility --> Household
-    Task --> Responsibility
-    Task -->|"household::lookup"| Household
+    Task -->|"responsibility, responsibility::task"| Responsibility
+    Task -->|"household::lookup, household::task"| Household
     Overview --> Task
 ```
 
@@ -88,6 +88,8 @@ dev.sharedops.household/
 `HouseholdLookup` declares `boolean isAccessible(HouseholdId id)`. The operation derives the authenticated account for each call and returns true only for its active membership; missing identity, foreign and absent households return false. It does not disclose global existence. The interface is annotated with `@NamedInterface(value = "lookup", propagate = true)`, so `HouseholdId` remains in `household.domain` while also being included in the exported `lookup` interface. The domain type is not annotated with Spring annotations.
 
 `task` permits `household::lookup` rather than an unrestricted `household` dependency, while its existing `responsibility` permission remains unchanged. The application boundary uses a membership port and never exports its persistence adapter. Replacing `existsById` is a source, binary and semantic break: consumers must migrate to `isAccessible` and provide an authenticated server context. No in-repository production caller was identified; external consumers remain unknown and require separate downstream compatibility sign-off before integration or deployment.
+
+For one-off tasks, `household::task` exports `HouseholdTaskAccess` and its transaction-scoped view. The task application enters that callback only after active membership has been established under the household lock. The view is valid only within the callback and does not expose household persistence. `responsibility::task` exports `ResponsibilityTaskAccess`, which returns an immutable, same-household snapshot under a row lock. Its caller must already hold the authorized household lock. Task creation checks that the responsibility is active and individual, then persists the resolved assignment; later ownership changes do not reassign existing tasks. The lock order is household, responsibility, then task. Task service operations run in a transaction and do not access other modules' persistence directly. Existing `household::lookup` and `household::responsibility` exports and the existing `responsibility` dependency remain available.
 
 Other cross-module interfaces should be introduced when a use case requires them, not preemptively for all modules.
 
