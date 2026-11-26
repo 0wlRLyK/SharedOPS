@@ -171,7 +171,7 @@ class ResponsibilityHttpIT {
     String id = JsonPath.read(initial.getResponse().getContentAsString(), "$.id");
     UUID linkedTask = UUID.randomUUID();
     jdbc.update(
-        "INSERT INTO tasks (id, household_id, responsibility_id) VALUES (?, ?, ?)",
+        "INSERT INTO tasks (id,household_id,responsibility_id,title,priority,status,version,deadline_kind) VALUES (?,?,?,'Task','NORMAL','OPEN',0,'NONE')",
         linkedTask,
         household,
         UUID.fromString(id));
@@ -742,7 +742,7 @@ class ResponsibilityHttpIT {
         otherHouse,
         otherMember);
     jdbc.update(
-        "INSERT INTO tasks (id, household_id, responsibility_id) VALUES (?, ?, ?)",
+        "INSERT INTO tasks (id,household_id,responsibility_id,title,priority,status,version,deadline_kind) VALUES (?,?,?,'Task','NORMAL','OPEN',0,'NONE')",
         UUID.randomUUID(),
         household,
         UUID.fromString(id));
@@ -961,7 +961,7 @@ class ResponsibilityHttpIT {
         otherHouse);
     UUID linkedTask = UUID.randomUUID();
     jdbc.update(
-        "INSERT INTO tasks (id,household_id,responsibility_id) VALUES (?,?,?)",
+        "INSERT INTO tasks (id,household_id,responsibility_id,title,priority,status,version,deadline_kind) VALUES (?,?,?,'Task','NORMAL','OPEN',0,'NONE')",
         linkedTask,
         household,
         id);

@@ -28,7 +28,7 @@ class TaskChecklistTransactionRollbackIT {
   @Test
   void rollsBackWhenExplicitFlushFails() {
     UUID householdId = UUID.randomUUID();
-    TaskEntity task = new TaskEntity(householdId);
+    TaskEntity task = new TaskEntity(householdId, "Task");
     ChecklistEntryEntity entryA = new ChecklistEntryEntity(task, "Text A", false, 0);
     ChecklistEntryEntity entryB = new ChecklistEntryEntity(task, "Text B", false, 0);
     task.addChecklistEntry(entryA);
@@ -78,7 +78,7 @@ class TaskChecklistTransactionRollbackIT {
   @Test
   void rollsBackWhenImplicitFlushFailsAtCommit() {
     UUID householdId = UUID.randomUUID();
-    TaskEntity task = new TaskEntity(householdId);
+    TaskEntity task = new TaskEntity(householdId, "Task");
     ChecklistEntryEntity entryA = new ChecklistEntryEntity(task, "Text A", false, 0);
     ChecklistEntryEntity entryB = new ChecklistEntryEntity(task, "Text B", false, 0);
     task.addChecklistEntry(entryA);

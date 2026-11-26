@@ -42,7 +42,9 @@ public class ChecklistPositionRaceIT {
           householdId);
 
       jdbcTemplate.update(
-          "INSERT INTO tasks (id, household_id) VALUES (?, ?)", taskId, householdId);
+          "INSERT INTO tasks (id,household_id,title,priority,status,version,deadline_kind) VALUES (?,?,'Task','NORMAL','OPEN',0,'NONE')",
+          taskId,
+          householdId);
 
       Runnable worker =
           () -> {

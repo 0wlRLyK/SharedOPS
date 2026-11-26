@@ -52,7 +52,7 @@ class DatabaseConstraintsIT {
     assertThatThrownBy(
             () ->
                 jdbcTemplate.update(
-                    "INSERT INTO tasks (id, household_id, responsibility_id) VALUES (?, ?, ?)",
+                    "INSERT INTO tasks (id,household_id,responsibility_id,title,priority,status,version,deadline_kind) VALUES (?,?,?,'Task','NORMAL','OPEN',0,'NONE')",
                     taskId,
                     householdB,
                     responsibilityId))
@@ -70,7 +70,10 @@ class DatabaseConstraintsIT {
     jdbcTemplate.update(
         "INSERT INTO households (id, name, currency, timezone) VALUES (?, 'Fixture', 'EUR', 'Europe/Berlin')",
         householdId);
-    jdbcTemplate.update("INSERT INTO tasks (id, household_id) VALUES (?, ?)", taskId, householdId);
+    jdbcTemplate.update(
+        "INSERT INTO tasks (id,household_id,title,priority,status,version,deadline_kind) VALUES (?,?,'Task','NORMAL','OPEN',0,'NONE')",
+        taskId,
+        householdId);
     jdbcTemplate.update(
         "INSERT INTO checklist_entries (id, task_id, text, is_completed, position) VALUES (?, ?, ?, ?, ?)",
         checklistEntryA,
@@ -101,7 +104,10 @@ class DatabaseConstraintsIT {
     jdbcTemplate.update(
         "INSERT INTO households (id, name, currency, timezone) VALUES (?, 'Fixture', 'EUR', 'Europe/Berlin')",
         householdId);
-    jdbcTemplate.update("INSERT INTO tasks (id, household_id) VALUES (?, ?)", taskId, householdId);
+    jdbcTemplate.update(
+        "INSERT INTO tasks (id,household_id,title,priority,status,version,deadline_kind) VALUES (?,?,'Task','NORMAL','OPEN',0,'NONE')",
+        taskId,
+        householdId);
     assertThatThrownBy(
             () ->
                 jdbcTemplate.update(
